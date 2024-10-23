@@ -13,6 +13,18 @@ const db = new sqlite3.Database(process.env.DB_PATH || 'contacts.db');
 const LOGIN_STATUS_KEY = 'LOGIN_STATUS';
 let loginStatus = 'loggedOut';
 
+const client = new Client({
+    authStrategy: new LocalAuth(),
+    puppeteer: {
+        headless: true,
+        args: [
+            '--no-sandbox',
+            '--disable-setuid-sandbox',
+            '--disable-dev-shm-usage',
+            '--disable-gpu',
+        ]
+    }
+});
 dotenv.config(); // Load initial environment variables
 
 const app = express();
