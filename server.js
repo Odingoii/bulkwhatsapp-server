@@ -27,7 +27,7 @@ const io = new Server(server, {
 
 // Middleware setup
 app.use(express.json());
-app.use(cors({ origin: 'https://bulkwhatsapp.onrender.com:3000', credentials: true }));
+app.use(cors({ origin: 'https://bulkwhatsapp.onrender.com', credentials: true }));
 app.use((req, res, next) => {
     dotenv.config();
     next();
