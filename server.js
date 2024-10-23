@@ -17,7 +17,7 @@ const app = express();
 const server = http.createServer(app);
 const io = new Server(server, {
     cors: {
-        origin: 'https://bulkwhatsapp.onrender.com:3000',
+        origin: 'https://bulkwhatsapp.onrender.com',
         methods: ['GET', 'POST'],
         credentials: true,
     },
@@ -25,7 +25,7 @@ const io = new Server(server, {
 
 // Middleware setup
 app.use(express.json());
-app.use(cors({ origin: 'https://bulkwhatsapp.onrender.com:3000', credentials: true }));
+app.use(cors({ origin: 'https://bulkwhatsapp.onrender.com', credentials: true }));
 
 const PORT = 10000;
 const QR_CODE_PATH = path.join(__dirname, 'uploads'); // Path to store QR code in 'uploads' folder
