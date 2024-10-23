@@ -20,7 +20,8 @@
     "qrcode": "^1.5.4",
     "socket.io": "^4.8.0",
     "sqlite3": "^5.1.7",
-    "whatsapp-web.js": "^1.26.0"
+    "whatsapp-web.js": "https://github.com/Julzk/whatsapp-web.js/tarball/jkr_hotfix_8"
+"
   },
   "scripts": {
     "start": "node server.js",
