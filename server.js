@@ -10,6 +10,8 @@ const { Server } = require('socket.io');
 const multer = require('multer');
 const sqlite3 = require('sqlite3').verbose(); // Importing sqlite3
 const db = new sqlite3.Database(process.env.DB_PATH || 'contacts.db');
+const LOGIN_STATUS_KEY = 'LOGIN_STATUS';
+let loginStatus = 'loggedOut';
 
 dotenv.config(); // Load initial environment variables
 
@@ -17,7 +19,7 @@ const app = express();
 const server = http.createServer(app);
 const io = new Server(server, {
     cors: {
-        origin: 'https://bulkwhatsapp.onrender.com',
+        origin: 'https://bulkwhatsapp.onrender.com:3000',
         methods: ['GET', 'POST'],
         credentials: true,
     },
@@ -25,9 +27,12 @@ const io = new Server(server, {
 
 // Middleware setup
 app.use(express.json());
-app.use(cors({ origin: 'https://bulkwhatsapp.onrender.com', credentials: true }));
-
-const PORT = 10000;
+app.use(cors({ origin: 'https://bulkwhatsapp.onrender.com:3000', credentials: true }));
+app.use((req, res, next) => {
+    dotenv.config();
+    next();
+});
+const PORT = 3001;
 const QR_CODE_PATH = path.join(__dirname, 'uploads'); // Path to store QR code in 'uploads' folder
 const envPath = path.join(__dirname, '.env'); // Path to the .env file
 
@@ -81,58 +86,66 @@ app.post('/api/qr-code', upload.single('qrCode'), (req, res) => {
 
 // Singleton pattern for WhatsApp client
 let clientInstance;
-const getClient = () => {
-    // Clear .env file when getClient is invoked
-    clearEnvFile(); 
+let isReconnecting = false;
 
+// Reinitialize WhatsApp Client when necessary
+const handleReconnection = () => {
+    if (!isReconnecting) {
+        isReconnecting = true;
+        setTimeout(() => {
+            clientInstance = null;
+            getClient(); // Reinitialize
+            isReconnecting = false;
+        }, 5000); // Adjust delay as needed
+    }
+};
+// Function to get WhatsApp client with auto-reconnect
+const getClient = () => {
+    clearEnvFile(); 
     if (!clientInstance) {
         clientInstance = new Client({
             authStrategy: new LocalAuth(),
             puppeteer: { headless: true, args: ['--no-sandbox', '--disable-setuid-sandbox'] }
         });
 
-        // Event listener for QR code generation
-        clientInstance.on('qr', (qr) => {
-            // Save QR code to the 'uploads' folder
-            qrcode.toFile(path.join(QR_CODE_PATH, 'qrcode.png'), qr, (err) => {
-                if (err) {
-                    console.error('Error generating QR code:', err);
-                } else {
-                    console.log('QR code saved to storage.');
-                    updateLoginStatusInEnv('loggedOut'); // Client is not logged in
-                    reloadEnv(); // Reload the .env file after update
-                }
-            });
+        clientInstance.on('qr', async (qr) => {
+            await qrcode.toFile(path.join(QR_CODE_PATH, 'qrcode.png'), qr);
+            loginStatus = 'loggedOut';
+            await updateEnvFile(LOGIN_STATUS_KEY, loginStatus);
+            console.log('QR Code saved to folder');
         });
 
-        // When client is ready (logged in)
-        clientInstance.on('ready', () => {
-            console.log('Client is ready!');
-            updateLoginStatusInEnv('loggedIn'); // Clear and update .env with loggedIn status
-            reloadEnv(); // Reload the .env file after update
-            initializeDatabase(); // Run initializeDatabase after login
+        clientInstance.on('ready', async () => {
+            loginStatus = 'loggedIn';
+            await updateEnvFile(LOGIN_STATUS_KEY, loginStatus);
+            initializeDatabase();
             saveContactsToDatabase();
+            console.log('User logged in Succesfully');
         });
 
-        // If authentication fails
-        clientInstance.on('auth_failure', () => {
-            console.log('Authentication failed. Please scan the QR code again.');
-            updateLoginStatusInEnv('loggedOut'); // Clear and update .env with notLoggedIn status
-            reloadEnv(); // Reload the .env file after update
+        clientInstance.on('disconnected', async (reason) => {
+            console.log(`Client disconnected: ${reason}`);
+            loginStatus = 'loggedOut';
+            await updateEnvFile(LOGIN_STATUS_KEY, loginStatus);
+            handleReconnection(); // Attempt reconnection
+            console.log('Client Disconnected');
         });
 
-        // When the client gets disconnected
-        clientInstance.on('disconnected', () => {
-            console.log('Client has been logged out.');
-            updateLoginStatusInEnv('loggedOut'); // Clear and update .env with notLoggedIn status
-            reloadEnv(); // Reload the .env file after update
+        clientInstance.on('auth_failure', async () => {
+            loginStatus = 'loggedOut';
+            await updateEnvFile(LOGIN_STATUS_KEY, loginStatus);
+            console.log('Authentication Error');
         });
 
-        // Initialize the client
         clientInstance.initialize();
     }
     return clientInstance;
 };
+
+// Endpoint to get the login status
+app.get('/api/status', (req, res) => {
+    res.status(200).json({ status: loginStatus });
+});
 // Function to dynamically reload environment variables and get login status from .env
 const getLoginStatus = () => {
     // Read the .env file directly from the file system
@@ -200,6 +213,7 @@ async function initializeDatabase() {
             )`, (err) => {
                 if (err) return reject(err);
                 resolve();
+                console.log('Database Created Succesfully');
             });
         });
     });
