@@ -27,7 +27,7 @@ const io = new Server(server, {
 app.use(express.json());
 app.use(cors({ origin: 'https://bulkwhatsapp.onrender.com:3000', credentials: true }));
 
-const PORT = 3001;
+const PORT = 10000;
 const QR_CODE_PATH = path.join(__dirname, 'uploads'); // Path to store QR code in 'uploads' folder
 const envPath = path.join(__dirname, '.env'); // Path to the .env file
 
@@ -669,7 +669,7 @@ clearEnvFile();
 // Start the server
 const startServer = () => {
     server.listen(PORT, () => {
-        console.log(`https://bulkwhatsapp.onrender.com:${PORT}`);
+        console.log(`bulkwhatsappserver:${PORT}`);
 
     });
 };
