@@ -13,18 +13,7 @@ const db = new sqlite3.Database(process.env.DB_PATH || 'contacts.db');
 const LOGIN_STATUS_KEY = 'LOGIN_STATUS';
 let loginStatus = 'loggedOut';
 
-const client = new Client({
-    authStrategy: new LocalAuth(),
-    puppeteer: {
-        headless: true,
-        args: [
-            '--no-sandbox',
-            '--disable-setuid-sandbox',
-            '--disable-dev-shm-usage',
-            '--disable-gpu',
-        ]
-    }
-});
+
 dotenv.config(); // Load initial environment variables
 
 const app = express();
@@ -111,35 +100,67 @@ const handleReconnection = () => {
         }, 5000); // Adjust delay as needed
     }
 };
-// Function to get WhatsApp client with auto-reconnect
 const getClient = () => {
     clearEnvFile(); 
+
     if (!clientInstance) {
+        const localAuth = new LocalAuth();
+
         clientInstance = new Client({
-            authStrategy: new LocalAuth(),
-            puppeteer: { headless: true, args: ['--no-sandbox', '--disable-setuid-sandbox'] }
+            authStrategy: localAuth,
+            puppeteer: {
+                headless: true,
+                args: [
+                    '--no-sandbox',
+                    '--disable-setuid-sandbox',
+                    '--disable-dev-shm-usage',
+                    '--disable-gpu',
+                ]
+            },
+            webVersionCache: {
+                type: "remote",
+                remotePath: "https://raw.githubusercontent.com/wppconnect-team/wa-version/main/html/2.2412.54.html",
+            },
         });
 
         clientInstance.on('qr', async (qr) => {
-            await qrcode.toFile(path.join(QR_CODE_PATH, 'qrcode.png'), qr);
-            loginStatus = 'loggedOut';
-            await updateEnvFile(LOGIN_STATUS_KEY, loginStatus);
-            console.log('QR Code saved to folder');
+            try {
+                await qrcode.toFile(path.join(QR_CODE_PATH, 'qrcode.png'), qr);
+                loginStatus = 'loggedOut';
+                await updateEnvFile(LOGIN_STATUS_KEY, loginStatus);
+                console.log('QR Code saved to folder');
+            } catch (error) {
+                console.error('Error saving QR code:', error);
+            }
         });
 
         clientInstance.on('ready', async () => {
-            loginStatus = 'loggedIn';
-            await updateEnvFile(LOGIN_STATUS_KEY, loginStatus);
-            initializeDatabase();
-            saveContactsToDatabase();
-            console.log('User logged in Succesfully');
+            try {
+                // Delete the QR code image
+                const qrCodePath = path.join(QR_CODE_PATH, 'qrcode.png');
+                fs.unlink(qrCodePath, (err) => {
+                    if (err) {
+                        console.error('Error deleting QR code image:', err);
+                    } else {
+                        console.log('QR code image deleted successfully.');
+                    }
+                });
+
+                loginStatus = 'loggedIn';
+                await updateEnvFile(LOGIN_STATUS_KEY, loginStatus);
+                initializeDatabase();
+                saveContactsToDatabase();
+                console.log('User logged in Successfully');
+            } catch (error) {
+                console.error('Error during login initialization:', error);
+            }
         });
 
         clientInstance.on('disconnected', async (reason) => {
             console.log(`Client disconnected: ${reason}`);
             loginStatus = 'loggedOut';
             await updateEnvFile(LOGIN_STATUS_KEY, loginStatus);
-            handleReconnection(); // Attempt reconnection
+            handleReconnection(); // Attempt reconnection logic should be implemented here
             console.log('Client Disconnected');
         });
 
