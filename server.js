@@ -19,7 +19,7 @@ const app = express();
 const server = http.createServer(app);
 const io = new Server(server, {
     cors: {
-        origin: 'https://bulkwhatsapp.onrender.com:3000',
+        origin: 'https://bulkwhatsapp.onrender.com',
         methods: ['GET', 'POST'],
         credentials: true,
     },
