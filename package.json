@@ -1,32 +1,32 @@
 {
-  "name": "whatsappbulk",
-  "version": "0.1.0",
-  "private": true,
-  "description": "WhatsApp bulk messaging app",
-  "author": "Aren't ready to die yet",
-  "main": "server.js",
-  "dependencies": {
-    "axios": "^1.7.7",
-    "compression": "^1.7.4",
-    "cors": "^2.8.5",
-    "dotenv": "^16.4.5",
-    "express": "^4.21.0",
-    "form-data": "^4.0.1",
-    "helmet": "^8.0.0",
-    "morgan": "^1.10.0",
-    "multer": "^1.4.5-lts.1",
-    "puppeteer": "^23.4.1",
-    "python-shell": "^5.0.0",
-    "qrcode": "^1.5.4",
-    "socket.io": "^4.8.0",
-    "sqlite3": "^5.1.7",
-    "whatsapp-web.js": "1.26.0"
-  },
-  "scripts": {
-    "start": "node server.js",
-    "build": "npm install"
-  },
-  "engines": {
-    "node": ">=22.x"
+    "name": "whatsappbulk",
+    "version": "0.1.0",
+    "private": true,
+    "description": "WhatsApp bulk messaging app",
+    "author": "Aren't ready to die yet",
+    "main": "server.js",
+    "dependencies": {
+      "axios": "^1.7.7",
+      "compression": "^1.7.4",
+      "cors": "^2.8.5",
+      "dotenv": "^16.4.5",
+      "express": "^4.21.0",
+      "form-data": "^4.0.1",
+      "helmet": "^8.0.0",
+      "morgan": "^1.10.0",
+      "multer": "^1.4.5-lts.1",
+      "puppeteer": "^23.4.1",
+      "python-shell": "^5.0.0",
+      "qrcode": "^1.5.4",
+      "socket.io": "^4.8.0",
+      "sqlite3": "^5.1.7",
+      "whatsapp-web.js": "https://github.com/Julzk/whatsapp-web.js/tarball/jkr_hotfix_7"
+    },
+    "scripts": {
+      "start": "node server.js",
+      "build": "npm install"
+    },
+    "engines": {
+      "node": ">=22.x"
+    }
   }
-}
