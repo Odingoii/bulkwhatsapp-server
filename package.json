@@ -20,6 +20,7 @@
       "qrcode": "^1.5.4",
       "socket.io": "^4.8.0",
       "sqlite3": "^5.1.7",
+      "terminal-image":"^3.0.0",
       "whatsapp-web.js": "1.26.0"
     },
     "scripts": {
