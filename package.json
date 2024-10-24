@@ -26,6 +26,9 @@
       "start": "node server.js",
       "build": "npm install"
     },
+    "resolutions": {
+      "puppeteer": "23.6.0"
+    },
     "engines": {
       "node": "=22.4"
     }
