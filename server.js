@@ -104,10 +104,7 @@ const getClient = () => {
     clearEnvFile(); 
 
     if (!clientInstance) {
-        const localAuth = new LocalAuth();
-
         clientInstance = new Client({
-            authStrategy: localAuth,
             puppeteer: {
                 headless: true,
                 args: [
@@ -174,6 +171,7 @@ const getClient = () => {
     }
     return clientInstance;
 };
+
 
 // Endpoint to get the login status
 app.get('/api/status', (req, res) => {
